@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Repwise</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 50% -10%, #2a2350 0%, #0a0a0f 60%);
+      color: #f4f3fa; padding: 24px;
+    }
+    .card {
+      width: 100%; max-width: 420px; background: #131320; border: 1px solid #2c2c40;
+      border-radius: 28px; padding: 28px; text-align: center;
+    }
+    .logo { font-size: 34px; font-weight: 800; letter-spacing: -1px; margin-bottom: 4px; }
+    .logo b { color: #9d7bff; }
+    .sub { color: #9b9ab0; font-size: 15px; margin: 0 0 22px; }
+    .name { font-size: 22px; font-weight: 700; margin: 0 0 24px; }
+    a.btn {
+      display: block; text-decoration: none; color: #fff; font-weight: 700; font-size: 17px;
+      padding: 16px; border-radius: 20px;
+      background: linear-gradient(135deg, #6e4bff, #c24dff);
+    }
+    .hint { color: #6c6b80; font-size: 13px; margin-top: 18px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Rep<b>wise</b></div>
+    <p class="sub" id="sub">Someone shared a workout plan with you.</p>
+    <p class="name" id="name"></p>
+    <a class="btn" id="open" href="#">Open in Repwise</a>
+    <p class="hint" id="hint">If nothing happens, install Repwise and open this link again.</p>
+  </div>
+  <script>
+    (function () {
+      var it = (navigator.language || "").toLowerCase().indexOf("it") === 0;
+      var t = it
+        ? { sub: "Qualcuno ti ha condiviso una scheda di allenamento.", open: "Apri in Repwise",
+            hint: "Se non succede nulla, installa Repwise e riapri questo link." }
+        : { sub: "Someone shared a workout plan with you.", open: "Open in Repwise",
+            hint: "If nothing happens, install Repwise and open this link again." };
+      document.getElementById("sub").textContent = t.sub;
+      document.getElementById("open").textContent = t.open;
+      document.getElementById("hint").textContent = t.hint;
+
+      function rawPayload() {
+        var s = (location.hash || "") + "&" + (location.search || "");
+        var i = s.indexOf("d=");
+        if (i < 0) return "";
+        return s.substring(i + 2).split("&")[0].split("#")[0];
+      }
+      function b64urlToText(str) {
+        str = str.replace(/-/g, "+").replace(/_/g, "/");
+        while (str.length % 4) str += "=";
+        var bin = atob(str);
+        var bytes = Uint8Array.from(bin, function (c) { return c.charCodeAt(0); });
+        return new TextDecoder().decode(bytes);
+      }
+
+      var payload = rawPayload();
+      var appLink = "repwise://plan?d=" + payload;
+      document.getElementById("open").setAttribute("href", appLink);
+
+      if (payload) {
+        try {
+          var plan = JSON.parse(b64urlToText(payload));
+          if (plan && plan.name) document.getElementById("name").textContent = "“" + plan.name + "”";
+        } catch (e) {}
+        setTimeout(function () { window.location.href = appLink; }, 400);
+      }
+    })();
+  </script>
+</body>
+</html>
